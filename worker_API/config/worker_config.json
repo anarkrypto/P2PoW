@@ -1,0 +1,12 @@
+{
+ "reward_account": "",
+ "private_key": "",
+ "representative": "nano_1center16ci77qw5w69ww8sy4i4bfmgfhr81ydzpurm91cauj11jn6y3uc5y",
+ "fee": "0.0001",
+ "node": "[::1]:7076",
+ "worker": "[::1]:7076",
+ "use_active_difficulty": false,
+ "max_multiplier": 10.0,
+ "listen": "0.0.0.0",
+ "port": 7090
+}

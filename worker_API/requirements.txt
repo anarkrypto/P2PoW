@@ -1,0 +1,8 @@
+nanolib==0.4.1
+requests==2.23.0
+Flask==1.1.1
+Flask-Cors==3.0.8
+waitress==1.4.2
+ipaddress==1.0.23
+colorlog==4.1.0
+systemd-python==234
