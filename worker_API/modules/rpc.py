@@ -28,14 +28,19 @@ def block_create(block_type, account, representative, previous, link, balance, s
                 return "invalid"
         return block
 
-#check if the account has the balance
+#account balance
 def balance(account):
-    resp = requests.post(worker["node"], json={"action": "account_balance", "account": account})
-    return int(resp.json()['balance'])
+    request = requests.post(worker["node"], json={"action": "account_balance", "account": account})
+    return int(request.json()['balance'])
 
-#account history
+#block info
+def block_info(hash):
+    request = requests.post(worker["node"], json={"action": "block_info", "json_block": "true", "hash": hash})
+    return request.json()
+
+#check last transaction
 def check_history(account, destination):
-    request = requests.post(worker["node"], json={"action": "account_history", "account": account, "count": -1, "raw": "true", "account_filter": [destination]})
+    request = requests.post(worker["node"], json={"action": "account_history", "account": account, "count": 1, "raw": "true", "account_filter": [destination]})
     history = request.json()["history"]
     if (len(history)):
         return history[0]
