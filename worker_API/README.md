@@ -206,7 +206,7 @@ The reward_block hash is the new previous block of the user's account
     After=network.target
 
     [Service]
-    Type=forking
+    Type=simple
     ExecStart=/usr/bin/python3 /home/p2pow/worker_API/api.py --output /var/log/p2pow.log
     Restart=on-failure
     RestartSec=15 #wait 15sec before restart
@@ -247,10 +247,7 @@ For this you will need to have your GPU drivers properly installed and OpenCL co
 This project is developed in a totally independent way, you can encourage further development of this and other Nano projects with a donation:
 **nano_18eoa1k16d4n1b5hb8hwxm5mmgp6zny7owhn8omc5bgxjahxsyznob9u536t**
 
-<a href='nano:nano_18eoa1k16d4n1b5hb8hwxm5mmgp6zny7owhn8omc5bgxjahxsyznob9u536t'>
 <img src="https://github.com/anarkrypto/P2PoW/blob/master/docs/donate-qr-code-gradient.png?raw=true" width="300px" />
-</a>
-
 
 ### Discord Channel
 If you have questions about the project, suggestions or other contributions you can join our channel **#p2pow-discussion** on The Nano Center's Discord server:
