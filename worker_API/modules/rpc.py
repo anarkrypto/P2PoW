@@ -1,32 +1,9 @@
-import requests
-import json
-from nanolib import Block, get_account_public_key
-from modules.import_config import worker, register_config
+import requests, json
+from modules.utils import block_create
+from modules.import_config import worker
+from nanolib import Block
 
 timeout = 30
-
-#Read transaction Block
-def block_create(block_type, account, representative, previous, link, balance, signature):
-    if "_" in link:
-        link = get_account_public_key(account_id=link)
-    try:
-        block = Block(
-            block_type=block_type,
-            account=account,
-            representative=representative,
-            previous=previous,
-            link=link,
-            balance=int(balance),
-        )
-    except:
-        return "invalid"
-    else:
-        if signature is not None:
-            try:
-                block.signature = signature
-            except:
-                return "invalid"
-        return block
 
 #account balance
 def balance(account):
@@ -40,10 +17,12 @@ def block_info(hash):
 
 #check last transaction
 def check_history(account, destination):
-    request = requests.post(worker["node"], json={"action": "account_history", "account": account, "count": 1, "raw": "true", "account_filter": [destination]})
+    request = requests.post(worker["node"], json={"action": "account_history", "account": account, "count": -1, "raw": "true", "account_filter": [destination]})
     history = request.json()["history"]
-    if (len(history)):
-        return history[0]
+    if len(history):
+        for block in history: #ignore epoch block type
+            if "subtype" in block and block["subtype"] == "send":
+                return block
     return (None)
 
 #check if block already exists
@@ -57,12 +36,12 @@ def frontier(account):
 #active difficulty network
 def get_difficulty():
      request = requests.post(worker["node"], json={"action": "active_difficulty", "include_trend": "true"})
-     return float(request.json()["multiplier"])
+     return request.json()
 
 #solve work
-def solve_work (hash, multiplier):
+def solve_work (hash, difficulty):
     try:
-         request = requests.post(worker["worker_node"], json={"action": "work_generate", "hash": hash, "multiplier": str(multiplier) })
+         request = requests.post(worker["worker_node"], json={"action": "work_generate", "hash": hash, "difficulty": difficulty})
          return request.json()
     except Exception as err:
         return {"error": str(err)}
@@ -78,21 +57,28 @@ def cancel_work (hash):
 def validate_work (hash, work):
     try:
         request = requests.post(worker["worker_node"], json={"action": "work_validate", "hash": hash, "work": work})
-    except:
+    except Exception as err:
         return {"error": "offline"}
     else:
-        return request.json()
-
+        try:
+            return request.json()
+        except:
+            return {"error": "invalid worker response"}
+            
 def node_version():
     try:
         request = requests.post(worker["node"], json={"action": "version"}, timeout=timeout)
-    except:
+    except Exception as err:
         return {"error": "offline"}
     else:
-        if "node_vendor" in request.json():
-            return request.json()
-        else:
-            return {"error": "node_vendor not found"}
+        try:
+            if "node_vendor" in request.json():
+                return request.json()
+            else:
+                return {"error": "node_vendor not found"}
+        except:
+            return {"error": "invalid node response"}
+
 
 #broadcast transaction
 def broadcast(transaction):
@@ -126,7 +112,7 @@ def pending_filter (account, threshold, count):
             return None
 
 #Receive pending transactions
-def receive(account, private_key, representative, amount, link, difficulty):
+def receive(account, private_key, representative, amount, link):
     request = requests.post(worker["node"], json={"action": "accounts_frontiers", "accounts": [account]})
     previous = frontier(account)
     if previous == "0000000000000000000000000000000000000000000000000000000000000000":
@@ -142,7 +128,7 @@ def receive(account, private_key, representative, amount, link, difficulty):
         balance=balance(worker["account"]) + amount,
         link=link
     )
-    solveWork = solve_work(workHash, difficulty)
+    solveWork = solve_work(workHash, worker["difficulty_receive"])
     if "error" in solveWork:
         return {"error": solveWork["error"]}
     block.work = solveWork["work"]
@@ -151,10 +137,10 @@ def receive(account, private_key, representative, amount, link, difficulty):
     return r
 
 #Send transactions (Used in the registration process)
-def send (account, representative, previous, link_as_account, amount, difficulty):
+def send (account, representative, previous, link_as_account, amount):
     block = block_create("state", account, representative, previous, link_as_account, balance(worker["account"]) - amount, None)
     block.sign(worker["private_key"])
-    solveWork = solve_work(block.previous, difficulty)
+    solveWork = solve_work(block.previous, worker["difficulty"])
     if "error" in solveWork:
         return {"error": str(solveWork["error"])}
     block.work = solveWork["work"]

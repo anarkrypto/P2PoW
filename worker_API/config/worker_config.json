@@ -5,8 +5,11 @@
  "fee": "0.0001",
  "node": "[::1]:7076",
  "worker": "[::1]:7076",
- "use_active_difficulty": false,
- "max_multiplier": 10.0,
+ "max_multiplier": 30.0,
+ "use_dynamic_pow": false,
+ "use_dynamic_fee": false,
+ "dynamic_pow_interval": 30,
+ "show_network_difficulty": true,
  "listen": "0.0.0.0",
  "port": 7090
 }

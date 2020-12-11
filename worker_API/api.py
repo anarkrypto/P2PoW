@@ -1,186 +1,182 @@
-import time, json, sys, getopt, requests, waitress
+import time, json, requests, waitress
 from threading import Thread
 from flask_cors import CORS
 from flask import Flask, request, jsonify
-from nanolib import validate_account_id, validate_private_key, get_account_id
-from modules.rpc import balance, pending_filter, frontier, block_create, broadcast, get_difficulty, solve_work, cancel_work, validate_work, node_version
-from modules.logger import app_log, logFile
+import modules.rpc as rpc
+import modules.init as init
+from modules.logger import app_log
 from modules.import_config import worker, register_config
-from modules.register_worker import checkWorkerRegister
-
-#Pass arguments
-try:
-    argv = sys.argv[1:]
-    opts, args = getopt.getopt(argv,"ho:",["output="])
-except getopt.GetoptError:
-    print ('api.py -h, --help \t \t This help text')
-    print ('api.py -o, --output <filename> \t Write log to file')
-    sys.exit(2)
-for opt, arg in opts:
-    if opt == '-h':
-        app_log.info ('api.py -o <outputfile>')
-        sys.exit()
-    elif opt in ("-o", "--output"):
-        logFile(arg)
-
-
-app_log.info ("Connecting to node and worker node...")
-
-#check if node is online
-check_node = node_version()
-if "node_vendor" in check_node:
-    app_log.info ("Node" + " (" + check_node["node_vendor"] + ") is online on " + worker["node"])
-else:
-    app_log.info ("Node " + worker["node"] + " error: " + str(check_node["error"]))
-    app_log.info ("Exiting...")
-    quit()
-
-#check worker
-check_worker = validate_work("718CC2121C3E641059BC1C2CFC45666C99E8AE922F7A807B7D07B62C995D79E2", "2bf29ef00786a6bc")
-if "difficulty" in check_worker:
-    if check_worker["difficulty"] == "ffffffd21c3933f4":
-        app_log.info("Worker is online on " + worker["worker_node"])
-    else:
-        app_log.error("Worker " + worker["worker_node"] + " error validating! Exiting...")
-        quit()
-else:
-    app_log.info ("Worker " + worker["worker_node"] + " error: " + str(check_worker["error"]))
-    app_log.info ("Exiting...")
-    quit()
-
-#check worker Register
-checkWorkerRegister()
+from modules.utils import block_create, current_milli_time, to_mega_nano
 
 #Setup our API server
 app = Flask(__name__)
 CORS(app)
 timeout = 30
 
-current_milli_time = lambda: int(round(time.time() * 1000))
+#response json with http code
+def responseAPI(res, code):
+    return app.response_class(response=json.dumps(res),
+                                  status=code,
+                                  mimetype='application/json')
+
+#handler 404 error
+@app.errorhandler(404) 
+def invalid_route(e): 
+    return responseAPI({
+        "error": "Invalid Route",
+        "validRoutes": ["/request_info", "/request_work"],
+        "moreInfo": "https://github.com/anarkrypto/P2PoW/worker_API"
+    }, 404)
 
 #Listen /request_info
 @app.route('/request_info', methods=['GET', 'POST'])
 def request_info():
     app_log.info ("Requested Info")
-    header = {"version": "1.0.0", "reward_account": worker["account"], "fee": str(worker["fee"]), "max_multiplier": worker["max_multiplier"]}
-    if worker["use_active_difficulty"] == True:
-        header["min_multiplier"] = get_difficulty()
-    else:
-        header["min_multiplier"] = 1.0
-    return jsonify(header)
+    info = {
+        "version": "2.0.0",
+        "reward_account": worker["account"],
+        "fee": str(worker["fee"]),
+        "fee_receive": str(worker["fee_receive"]),
+        "min_multiplier": worker["multiplier"],
+        "max_multiplier": worker["max_multiplier"],
+        "last_update": init.active_difficulty["last_update"],
+        "dynamic_fee": False,
+        "status": "available"
+    }
+    if worker["show_network_difficulty"] == True:
+        info["network"] = {
+            "minimum": init.active_difficulty["network_minimum"],
+            "minimum_receive_minimum": init.active_difficulty["network_receive_minimum"],
+            "current": init.active_difficulty["network_current"],
+            "receive_current": init.active_difficulty["network_receive_current"],
+            "multiplier": init.active_difficulty["multiplier"]
+        }
+    if worker["use_dynamic_fee"] == True:
+        info["dynamic_fee"] = worker["dynamic_pow_interval"]
+    if (float(init.active_difficulty["multiplier"]) > worker["max_multiplier"]):
+        info["status"] = "unavailable",
+        info["error"] = "Current network difficulty exceded maximum difficulty allowed",
+        info["retryAfter"] = init.when_next_active_difficulty() / 1000
+    return responseAPI(info, 200)
 
 #Listen /request_work
 @app.route('/request_work', methods=['GET', 'POST'])
 def request_work():
 
-    #start time
+    #start time count
     timeBefore = current_milli_time()
 
-    #request transactions
+    #prevents works with greater difficulties than defined 
+    if (float(init.active_difficulty["multiplier"]) > worker["max_multiplier"]):
+        app_log.warning("Current network difficulty exceded maximum difficulty allowed")
+        return responseAPI({
+            "status": "unavailable",
+            "error": "Current network difficulty exceded maximum difficulty allowed",
+            "retryAfter": init.when_next_active_difficulty() / 1000
+            }, 503)
+
+    ### CHECK USER SENT DATA ###
+    #check JSON
     try:
-        data = request.get_json(force=True)
+        user_data = request.get_json(force=True)
     except:
         app_log.warning ("Invalid request received")
-        return {"error": "Invalid JSON"}
+        return responseAPI ({"error": "Invalid JSON"}, 400)
 
-    #check if user and worker transaction are present
-    if "user_transaction" in data:
-        user_transaction = data.get("user_transaction")
+    #check if user transaction is present
+    if "user_block" in user_data:
+        user_transaction = user_data.get("user_block")
     else:
         app_log.warning ("User transaction missing")
-        return jsonify({"error": "User transaction missing"})
+        return responseAPI({"error": "User transaction missing"}, 400)
 
-    if "reward_transaction" in data:
-        reward_transaction = data.get("reward_transaction")
+    #check if reward transation is present
+    if "reward_block" in user_data:
+        reward_transaction = user_data.get("reward_block")
     else:
-        app_log.warning ("Worker transaction missing")
-        return jsonify({"error": "Worker transaction missing"})
+        app_log.warning ("Reward transaction missing")
+        return responseAPI({"error": "Reward transaction missing"}, 400)
 
     #Read transaction and check if is valid
     if "link" not in user_transaction:
-        if "link_as_account" in user_block:
+        if "link_as_account" in user_transaction:
             user_transaction["link"] = user_transaction["link_as_account"]
         else:
-            return jsonify({"error": "Invalid user transaction"})
+            return responseAPI({"error": "Invalid user transaction"}, 400)
     if "link" not in reward_transaction:
         if "link_as_account" in reward_transaction:
             reward_transaction["link"] = reward_transaction["link_as_account"]
         else:
             app_log.warning ("Invalid user transaction")
-            return jsonify({"error": "Invalid worker transaction"})
+            return responseAPI({"error": "Invalid Reward transaction"}, 400)
 
+    #Builds the user and reward blocks and checks for invalid transaction data, such as invalid signature
     user_block = block_create("state", user_transaction.get('account').replace("xrb_", "nano_"), user_transaction.get('representative'), user_transaction.get('previous'), user_transaction.get("link").upper(), user_transaction.get('balance'), user_transaction.get("signature").upper())
     if user_block == "invalid":
         app_log.warning ("Invalid user transaction")
-        return jsonify({"error": "Invalid user transaction"})
+        return responseAPI({"error": "Invalid user transaction"}, 400)
     reward_block = block_create("state", reward_transaction.get('account').replace("xrb_", "nano_"), reward_transaction.get('representative'), reward_transaction.get('previous'), reward_transaction.get("link").upper(), reward_transaction.get('balance'), reward_transaction.get("signature").upper())
     if reward_block == "invalid":
-        app_log.warning ("Invalid worker transaction")
-        return jsonify({"error": "Invalid worker transaction"})
+        app_log.warning ("Invalid reward transaction")
+        return responseAPI({"error": "Invalid reward transaction"}, 400)
 
     #If account source in both transactions is different
     if user_block.account != reward_block.account :
         app_log.warning ("Different source accounts ")
-        return jsonify({"error": "Different Accounts source"})
+        return responseAPI({"error": "Different Accounts source"}, 400)
 
     #If worker account is wrong
     if reward_block.link != worker["public_key"]:
         app_log.warning ("Worker account is incorrect")
-        return jsonify({"error": "Worker account is incorrect"})
+        return responseAPI({"error": "Worker account is incorrect"}, 400)
 
     #Check if previous block in worker hash is correct
     if reward_block.previous != user_block.block_hash:
         app_log.warning ("Incorrect previous block in worker block")
-        return jsonify({"error": "Incorrect previous block in worker block" })
-
-    #Recalculate the Fee with active_difficulty with 10% tolerance
-    if worker["use_active_difficulty"] == True:
-        multiplier = get_difficulty()
-        if (multiplier > worker["max_multiplier"]):
-            return jsonify({"error": "Maximum difficulty exceded"})
-        else:
-            app_log.info ("Using active difficulty: " + str(multiplier))
-        if multiplier * 0.9 > 1.0:
-            worker["fee"] *= (multiplier * 0.9) #multiplier fee with tolerance
-        else:
-            worker["fee"] *= 1.0
-    else:
-        multiplier = 1.0
+        return responseAPI({"error": "Incorrect previous block in worker block" }, 400)
 
     #Check if fee is right
     user_fee = user_block.balance - reward_block.balance
-    if user_fee < worker["fee"]:
-        app_log.warning ( "Fee " + str(user_fee) + " is less than minimum " + str(worker["fee"]))
-        return jsonify({"error": "Fee is less than minimum"})
+    if user_fee < worker["fee"] and user_fee < worker["fee_receive"]:
+        app_log.warning ("Fee " + str(user_fee) + " is less than minimum")
+        return responseAPI({"error": "Fee is less than minimum"}, 403)
 
+    ### CHECK USER ACCOUNT STATE VIA NANO NODE RPC ###
     #Check previous block
-    if frontier(user_block.account) == user_block.previous:
+    if rpc.frontier(user_block.account) == user_block.previous:
         app_log.info ("Block is valid: " + user_block.block_hash)
     else:
         app_log.warning ("Wrong previous block")
-        return jsonify({"error": "Wrong previous block"})
-
+        return responseAPI({"error": "Wrong previous block"}, 400)
 
     #If user transaction is RECEIVE type, check if is valid (search in pending transactions)
-    user_actualBalance = balance(user_block.account)
+    user_actualBalance = rpc.balance(user_block.account)
     user_receiveAmount = user_block.balance - user_actualBalance
     if  user_actualBalance < int(user_block.balance):
-        user_pendings = pending_filter (user_block.account, user_receiveAmount, -1)
+        user_pendings = rpc.pending_filter (user_block.account, user_receiveAmount, -1)
         if user_pendings != None and user_block.link in user_pendings and int(user_pendings[user_block.link]) == user_receiveAmount:
             app_log.info ("User receiving " + str(user_receiveAmount) + " raws")
+            difficulty = worker["difficulty_receive"]
         else:
             app_log.warning ("Invalid receive transaction")
-            return jsonify({"error": "Invalid receive transaction"})
-    else:
+            return responseAPI({"error": "Invalid receive transaction"}, 403)
+    else: #send type
+           #Check if fee is right
+            if user_fee < worker["fee"]:
+                app_log.warning ("Fee " + str(user_fee) + " is less than minimum " + str(worker["fee"]))
+                return responseAPI({"error": "Fee is less than minimum"}, 403)
+
             #If user transaction is SEND type, check if account source has sufficient funds for both transactions
-            if balance(user_block.account) < int(reward_block.balance):
+            if rpc.balance(user_block.account) < int(reward_block.balance):
                 app_log.warning ("Insufficient funds")
-                return jsonify({"error": "Insuficient funds"})
+                return responseAPI({"error": "Insuficient funds"}, 403)
             else:
                 app_log.info ("User sending: " + str(user_receiveAmount) + " raws")
                 app_log.info ("Account has sufficient funds")
+                difficulty = worker["difficulty"]
 
-    #If all is right, check active_difficulty and PoW both transactions
+    #ALL IS RIGHT, SOLVE THE POW FOR BOTH TRANSACTIONS
+    #If previous is zero sequences, proof of work is about the public key of the account
     if user_block.previous == "0000000000000000000000000000000000000000000000000000000000000000":
         r = requests.post(worker["node"], json={ "action": "account_key", "account" : user_block.account },  timeout=timeout)
         userWorkHash = r.json()["key"]
@@ -189,94 +185,111 @@ def request_work():
 
     app_log.info ("Solving Works...")
 
+    #If new transactions are found in the user's account history,
+    # the transactions are invalidated and therefore the proof of work is canceled to avoid waste of processing.
     def checkAndCancel(stop):
         stopCheckAndCancel = False
         while stopCheckAndCancel == False:
-            l_frontier = frontier(user_block.account)
+            l_frontier = rpc.frontier(user_block.account)
             if l_frontier != user_block.previous and l_frontier != reward_block.previous and l_frontier != reward_block.block_hash:
                     app_log.warning ("User transaction found! Someone passed you!")
                     app_log.warning ("Canceling works...")
-                    cancelWork = cancel_work(user_block.previous)
+                    cancelWork = rpc.cancel_work(user_block.previous)
                     if "error" in cancelWork:
                         app_log.error("Error canceling user_block work: " + str(cancelWork["error"]))
-                    cancelWork = cancel_work(reward_block.previous)
+                    cancelWork = rpc.cancel_work(reward_block.previous)
                     if "error" in cancelWork:
                         app_log.error("Error canceling user_block work: " + str(cancelWork["error"]))
                     stopCheckAndCancel = True
             time.sleep(0.2)
             if stop():
                 break
-
-    #start check loop
+    #start checkAndCancel loop
     stop_checkAndCancelThread = False
     checkAndCancelThread = Thread(target=checkAndCancel, args =(lambda : stop_checkAndCancelThread, ))
     checkAndCancelThread.start()
 
     #Solve transactions PoW
-    userTimeBefore = current_milli_time()
-    solve_user = solve_work(userWorkHash, multiplier)
-    userTimeElapsed = current_milli_time() - userTimeBefore
-    if "error" in solve_user:
-        app_log.error ("PoW fail: " + solve_user["error"])
-        return jsonify({"error": "User PoW fail"})
-    else:
-        user_block.work = solve_user["work"]
-    app_log.info ("User transaction: Work Done in " + str(userTimeElapsed) + " ms!")
+    userPoWTimeBefore = current_milli_time()
+    solve_user_pow = rpc.solve_work(userWorkHash, difficulty)
+    userTimeElapsed = current_milli_time() - userPoWTimeBefore
+    if "error" in solve_user_pow:
+        app_log.error ("PoW fail: " + solve_user_pow["error"])
+        return responseAPI({"error": "User PoW fail"}, 500)
+    user_block.work = solve_user_pow["work"]
+    app_log.info ("User block: Work Done in " + str(userTimeElapsed) + " ms!")
 
-    workerTimeBefore = current_milli_time()
-    solve_reward = solve_work(reward_block.previous, multiplier)
-    workerTimeElapsed = current_milli_time() - workerTimeBefore
-    if "error" in solve_reward:
-        app_log.error ("Reward PoW fail: " + solve_reward["error"])
-        return jsonify({"error": "PoW fail"})
-    else:
-        reward_block.work = solve_reward["work"]
-    app_log.info ("Worker transaction: Work Done in " + str(workerTimeElapsed) + " ms!")
+    rewardPoWTimeBefore = current_milli_time()
+    solve_reward_pow = rpc.solve_work(reward_block.previous, worker["difficulty"])
+    workerTimeElapsed = current_milli_time() - rewardPoWTimeBefore
+    if "error" in solve_reward_pow:
+        app_log.error ("Reward PoW fail: " + solve_reward_pow["error"])
+        return responseAPI({"error": "PoW fail"}, 500)
+    reward_block.work = solve_reward_pow["work"]
+    app_log.info ("Reward block: Work Done in " + str(workerTimeElapsed) + " ms!")
 
-    #stop check loop
+    #stop checkAndCancel loop
     stop_checkAndCancelThread = True
     checkAndCancelThread.join()
 
-    #Broadcast
-    br_user = broadcast(user_block.json())
-    br_reward = broadcast(reward_block.json())
-    if "error" in br_user:
-        app_log.error ("Error broadcasting: " + str(br_user["error"]))
-        return br_user["error"]
-    if "error" in br_reward:
-        app_log.error ("Error broadcasting: " + str(br_reward["error"]))
-        return br_reward["error"]
+    #BROADCAST TRANSACTIONS
+    broad_user_block = rpc.broadcast(user_block.json())
+    broad_reward_block = rpc.broadcast(reward_block.json())
+    if "error" in broad_user_block:
+        app_log.error ("Error broadcasting user block: " + str(broad_user_block["error"]))
+        return responseAPI({"error": "Error broadcasting user block: " + broad_user_block["error"]}, 500)
+    if "error" in broad_reward_block:
+        app_log.error ("Error broadcasting reward block: " + str(broad_reward_block["error"]))
     totalTimeElapsed = current_milli_time() - timeBefore
     app_log.info ("Real time: " + str(totalTimeElapsed) + "ms")
 
-    #response
-    if 'hash' in br_user:
-        app_log.info ("User transaction successful! Block: " + br_user["hash"])
+    #RESPONSE
+    if 'hash' in broad_user_block:
+        app_log.info ("User transaction successful! Block: " + broad_user_block["hash"])
         response = {
             "successful": {
                 "user_block": {
-                    "hash": br_user["hash"],
+                    "hash": broad_user_block["hash"],
                     "work": user_block.work
                 }
             }
         }
 
-        if 'hash' in br_reward:
-            app_log.info ("Worker transaction successful! Block: " + br_reward["hash"])
+        if 'hash' in broad_reward_block:
+            app_log.info ("Reward transaction successful! Block: " + broad_reward_block["hash"])
             app_log.info ("Time total elapsed: " + str(totalTimeElapsed) + " ms!")
-            app_log.info ("Your reward has arrived!")
+            app_log.info ("Your reward: " + to_mega_nano(user_fee) + " Nano!!!")
             response["successful"]["reward_block"] = {
-                "hash": br_reward["hash"],
+                "hash": broad_reward_block["hash"],
                 "work": reward_block.work
             }
         else:
-            app_log.warning ("Worker transaction fail. Details: " + json.dumps(br_reward))
+            app_log.warning ("Reward transaction fail. Details: " + json.dumps(broad_reward_block))
             response["successful"]["reward_block"] = "fail"
     else:
-        app_log.warning ("User transaction fail. Details: " + json.dumps(br_user) + "\n")
-        response = {"error": "User transaction fail. Details: " + json.dumps(br_user)}
+        app_log.warning ("User transaction fail. Details: " + json.dumps(broad_user_block) + "\n")
+        response = {"error": "User transaction fail. Details: " + json.dumps(broad_user_block)}
 
-    return jsonify(response)
+    return responseAPI(response, 201)
 
+#serve P2PoW API with waitress
+def startAPI ():
+    try:
+        waitress.serve(app, host=worker["service_listen"], port=worker["service_port"], _quiet=True)
+    except Exception as err:
+        app_log.error ("Error: unable to start API. Reason: " + str(err))
 
-waitress.serve(app, host=worker["service_listen"], port=worker["service_port"])
+if __name__ == '__main__':
+    try:
+        #Init
+        init.pass_args()
+        init.check_node()
+        init.check_worker()
+        init.get_active_difficulty()
+        init.check_register()
+        Thread(target=startAPI).start()
+    except Exception as err:
+        app_log.error ("Error: unable to start API. Reason: " + str(err))
+        quit()
+    else:
+        app_log.info("Serving on http://" + str(worker["service_listen"]) + ":" + str(worker["service_port"]))

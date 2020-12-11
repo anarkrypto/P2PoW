@@ -1,21 +1,6 @@
-import json
-from nanolib import get_account_key_pair, validate_account_id, validate_private_key, get_account_id
-from decimal import *
+import json, nanolib
 from modules.logger import app_log
-
-#Convert IP address to valid url format
-def toURL(address):
-    if not address.startswith("http"):
-        return "http://" + address
-    else:
-        return address
-
-#Convert Mega Nano to raws
-def toRaws(megaNano):
-    getcontext().prec = 39
-    r = Decimal('1000000000000000000000000000000') * Decimal(megaNano)
-    raws = int(str(r).split('.')[0])
-    return raws
+from modules.utils import to_raws, to_url
 
 def importConfig():
     #get worker api config
@@ -25,17 +10,20 @@ def importConfig():
         worker = {
             "account": data['reward_account'].replace("xrb_", "nano_"),
             "private_key": data['private_key'].upper(),
-            "public_key": get_account_key_pair(data['private_key']).public.upper(),
+            "public_key": nanolib.get_account_key_pair(data['private_key']).public.upper(),
             "representative": data['representative'].replace("xrb_", "nano_"),
-            "fee": data['fee'],
-            "node": toURL(data['node']),
-            "worker_node": toURL(data['worker']),
-            "use_active_difficulty": data['use_active_difficulty'],
+            "default_fee": data['fee'],
+            "node": to_url(data['node']),
+            "worker_node": to_url(data['worker']),
             "max_multiplier": data['max_multiplier'],
+            "use_dynamic_pow": data['use_dynamic_pow'],
+            "use_dynamic_fee": data['use_dynamic_fee'],
+            "dynamic_pow_interval": data['dynamic_pow_interval'],
+            "show_network_difficulty": data['show_network_difficulty'],
             "service_listen": data['listen'],
             "service_port": data['port'],
         }
-        worker["fee"] = toRaws(str(worker["fee"])) #convert mNano fee to raws
+        worker["default_fee"] = to_raws(str(worker["default_fee"])) #convert mNano fee to raws
     except Exception as e:
         raise Exception ("worker_config.json error: " + str(e))
 
@@ -46,27 +34,27 @@ def importConfig():
         register_config = {
             "account": data_register['registration_account'].replace("xrb_", "nano_"),
             "register_code": int(data_register['register_code']),
-            "get_ip": toURL(data_register['get_ip'])
+            "get_ip": to_url(data_register['get_ip'])
         }
     except Exception as e:
         raise Exception ("worker_config.json error: " + str(err))
 
     #Check config file
     try:
-        validate_account_id(worker["account"])
-        validate_private_key(worker["private_key"])
-        validate_account_id(worker["representative"])
+        nanolib.validate_account_id(worker["account"])
+        nanolib.validate_private_key(worker["private_key"])
+        nanolib.validate_account_id(worker["representative"])
     except Exception as e:
         raise Exception ("Invalid config in worker_config.json found! Details: " + str(e))
 
     #Check config file
     try:
-        validate_account_id(register_config["account"])
+        nanolib.validate_account_id(register_config["account"])
     except Exception as e:
         raise Exception ("Invalid config in register_config.json found! Details: " + str(e))
 
     #Check if key pair is valid
-    if worker["account"] != get_account_id(private_key=worker["private_key"], prefix="nano_"):
+    if worker["account"] != nanolib.get_account_id(private_key=worker["private_key"], prefix="nano_"):
         raise Exception ("Invalid key pair")
 
     return {"worker_config": worker, "register_config": register_config}
