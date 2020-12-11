@@ -63,6 +63,8 @@ def request_info():
 @app.route('/request_work', methods=['GET', 'POST'])
 def request_work():
 
+    app_log.info ("Requested Work")
+
     #start time count
     timeBefore = current_milli_time()
 
@@ -293,3 +295,4 @@ if __name__ == '__main__':
         quit()
     else:
         app_log.info("Serving on http://" + str(worker["service_listen"]) + ":" + str(worker["service_port"]))
+        init.dont_die()

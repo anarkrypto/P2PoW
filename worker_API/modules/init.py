@@ -19,7 +19,7 @@ def pass_args():
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            app_log.info ('api.py -o <outputfile>')
+            print('api.py -o <outputfile>')
             sys.exit()
         elif opt in ("-o", "--output"):
             logFile(arg)
@@ -109,3 +109,7 @@ def when_next_active_difficulty():
     if next > 1000:
         return next
     return 1000
+
+def dont_die():
+    while True:
+        time.sleep(30)
