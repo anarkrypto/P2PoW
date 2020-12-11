@@ -5,22 +5,40 @@ Worker API for P2PoW (delegated Proof of Work), Nano cryptocurrency
 2.0.0
 
 ## Configuring your Worker API
-First you will need to have a <strong>Nano node >= v.19.0</strong> installed and synchronized.
-- Edit the worker_config.json file. Enter:
-	- Your Nano Account where the rewards will be deposited. It must have a small amount of Nano as it will be used to register your network node within a transaction.
-	- The Private Key of this account (attention, do not confuse with the master seed). Required to sign the decentralized registration transaction. Don't worry, the registration transaction signature is made directly from your computer and no one else will have access to your private keys.
-	- Your preferred Representative
-	- The Minimum Fee you prefer for each work, represented in mNano. Current suggestion: 0.0001
-	- Your Node address with RPC port. Probably <strong>127.0.0.1:7076</strong> or <strong>[::1]:7076</strong>
-	- Your Worker Node Address (can be the same as node).
-	- Active Difficulty can be ignored for now, I recommend you leaving false
-	- Max Multiplier will be the maximum PoW difficulty your worker will accept when using active difficulty in dynamic PoW
-	- Host address for API listen. 0.0.0.0 to listen external IP addresses
-	- API running Port. 7090 by default.
-	Example:
+#### Edit config/worker_config.json
 
-<p></p>
+Here we have the main information to be followed by the P2PoW API.
+Some variables can be edited as needed.
 
+- **reward_account**: Your Nano Account where the rewards will be deposited. It must have a small amount of Nano as it will be used to register your network node within a transaction. 0.00000001 Nano is enough
+
+- **private_key**: The secret of the reward account (attention, do not confuse with the seed). Required to sign the decentralized registration transaction. Don't worry, the registration transaction signature is made directly from your computer and no one else will have access to your private keys.
+
+- **representative**: Your preferred Nano Representative Account
+
+- **fee**: The Minimum Fee you prefer for each work, represented in mNano. Current suggestion: 0.0001 <br> *From node V21.2, receiving transactions require less proof of work, so the API will charge a little less to validate this type of block, but based on your configured fee.
+
+- **node**: Your Nano node address with RPC port. Probably <strong>[::1]:7076</strong> or <strong>127.0.0.1:7076</strong>
+
+- **worker**: Your Worker Node Address (can be the same as node). To offer your worker on the network it is recommended <a href="https://github.com/anarkrypto/P2PoW/tree/master/worker_API#gpu">to use GPU</a>
+
+- **listen**: Host address for API listen. 0.0.0.0 to listen external IP addresses. Also, remember to open the firewall ports.
+
+- **port**: API running Port. The default port of the P2PoW API is 7090, not change it if you want your worker to be found by users
+
+Advanced use (It is not recommended to edit):
+
+- **use_dynamic_pow**: If set to true, the API will maintain the network's active difficulty, but can be ignored for now, I recommend you leaving false
+
+- **dynamic_pow_interval**: How often to check the active difficulty. 
+
+_ **use_dynamic_fee**: If use_dynamic_pow is activated, it is possible to have a dynamic fee as well, based on the multiplier of the active difficulty. This functionality could be better explored in the future or for isolated cases. For now, the recommendation is to leave it disabled due to the fact that it would require a constant and accurate synchronization of the client with his worker.
+
+- **max_multiplier**: Max Multiplier will be the maximum PoW difficulty your worker will accept when using active difficulty in dynamic PoW
+
+- **show_network_difficulty**: Returns active_difficulty when the user requests the endpoint /request_info
+
+worker_config.json example:
 ```
     {
     	"reward_account": "nano_3k8it4efod5hw194axu1m483qee7pryfrfung9pyr8x9pysfpz1bothqmo1y",
@@ -29,23 +47,43 @@ First you will need to have a <strong>Nano node >= v.19.0</strong> installed and
  	"fee": 0.0001,
 	"node": "[::1]:7076",
 	"worker": "[::1]:7076",
-	"use_active_difficulty": false,
-	"max_multiplier": 10.0,
-	"listen": "0.0.0.0",
-	"port": 7090
+ 	"max_multiplier": 30.0,
+ 	"use_dynamic_pow": false,
+ 	"use_dynamic_fee": false,
+ 	"dynamic_pow_interval": 30,
+ 	"show_network_difficulty": true,
+ 	"listen": "0.0.0.0",
+ 	"port": 7090
     }
 ```
 
 
 ## How to run
 
-Install python dependencies:
+First you will need to have a <strong>Nano node >= V21.2</strong> installed and synchronized.
+<a href="https://docs.nano.org/running-a-node/node-setup/" target="_blank">Running a Nano node</a>
 
+Install dependencies (Linux debian/ubuntu based systems):
+
+```bash
+    sudo apt intall git python3 python3-pip
+```
+
+Clone this repository:
+```bash
+    git clone https://github.com/anarkrypto/p2pow.git
+```
+
+Go to workerAPI directory:
+```bash
+  cd p2pow/worker_API
+```
+
+Install python dependencies:
 ```
 pip3 install -r requirements.txt			
 ```
 run:
-
 ```
 python3 api.py
 ```
@@ -56,26 +94,48 @@ When starting you will have the following type of output:
 
 ## How it works
 
-The user requests Workers info at the endpoint worker_ip_address:7090/request_info
-And get the following kind of answer:
+The user requests Workers info at the endpoint **worker_ip_address:7090/request_info**
 
+Example (GET):
+```curl http://157.245.80.20:7090/request_info```
+
+And get the following kind of response:
 ```
      {				 
-      	"fee": 100000000000000000000000000,
-      	"max_multiplier":10.0,
-      	"min_multiplier":1.0,
-      	"reward_account":"nano_3k8it4efod5hw194axu1m483qee7pryfrfung9pyr8x9pysfpz1bothqmo1y",
-      	"version":"1.0.0"
+	"version": "2.0.0",
+	"status": "available",
+	"reward_account": "nano_3k8it4efod5hw194axu1m483qee7pryfrfung9pyr8x9pysfpz1bothqmo1y",
+	"fee": "100000000000000000000000000",
+	"fee_receive": "51562500000000000000000000",
+	"dynamic_fee": false,
+	"last_update": 1607674182067,
+	"min_multiplier": 1.0,
+	"max_multiplier": 30.0,
+	"network": {
+			"minimum": "fffffff800000000",
+			"minimum_receive_minimum": "fffffe0000000000",
+			"current": "fffffff800000000",
+			"receive_current": "fffffe0000000000",
+			"multiplier": "1"
+		}
      }
 ```
 
-This is the worker's reward address and his minimum fee per work (in raws).
-This fee must be multiplied by the (number of transactions sent - transaction reward)
-
 Then users will use this information to sign the worker reward block.
 
+- version: The API version, this prevents compatibility issues
+- status: While 'available', the user can request proof of work.
+- reward_account: where the user will send the worker’s reward
+- fee: Minimum fee that the worker requires to validate 'send' and 'change' type blocks
+- fee_receive: Minimum fee to validate 'receive' type blocks
 
-Users can request the PoW by calling the endpoint (/request_pow) sending a json data like the following one:
+Advanced use (dyanmic PoW): 
+- min_multiplier: For workers API with dynamic_pow active, indicates the minimum active multiplier of the network.
+- max_multplier: The maximum multiplier on the difficulty that the worker makes available. When the active difficulty multiplier exceeds this value, the worker will also change the status to "unavailable".
+- dynamic_fee: If not false, it will be an interval in seconds of how many times the fee and fee_receive should be checked and updated. 
+- network: An array containing the network's active difficulty info, obtained by the worker node (rpc :: {"action": "active_difficulty"})
+
+Then, users can request the PoW by calling the endpoint **/request_work** sending a json data like the following one:
 
 ```
         curl -s --request POST --data '{
@@ -101,11 +161,13 @@ Users can request the PoW by calling the endpoint (/request_pow) sending a json 
           		"link_as_account": "nano_3goufw1psaxsbqhuky3mcra74uz8ki7mkbb6rpupx1g87bsi4innftt4sckk",
           		"signature": "E40DD1FAB27161FF2DD73FAB20082A04F86632ECFC8FC60707D2B8221B1CFE7C3B01A8D718AC04C3F6F5EC764C8EBD9905CC756FE2DB381D81A0AC7D2A974D00"
           	}
-      }' worker_address:7090/request_pow
+      }' http://157.245.80.20:7090/request_work
 ```
 
 
 The first block (user_block) is the user transaction. The second one (reward_block) is responsible for the payment of the worker.
+
+If you are not already familiar with this mechanism, <a href="https://medium.com/@anarkrypto/delegated-proof-of-work-d566870924d9" target="_blank">read my article</a>
 
 
 If all goes well, the output by the worker API will look like this:
@@ -150,7 +212,7 @@ The reward_block hash is the new previous block of the user's account
     RestartSec=15 #wait 15sec before restart
     #User=nobody
     #Group=nogroup
-    WorkingDirectory=/home/P2PoW/workerAPI
+    WorkingDirectory=/home/P2PoW/worker_API
     Environment=PYTHONUNBUFFERED=1
 
     [Install]
@@ -179,7 +241,7 @@ P2PoW client read the transaction history of the registration account. There the
 
 ## GPU
 Although you can use your CPU for testing, if you want to be a worker it is recommended to use a good GPU, as in worker competition the best hardware solves PoW first.
-For this you will need to have your GPU drivers properly installed and OpenCL. With this your node will use its GPU for PoWs.
+For this you will need to have your GPU drivers properly installed and OpenCL configured. With this your node will use its GPU for PoWs.
 
 ### Donations
 This project is developed in a totally independent way, you can encourage further development of this and other Nano projects with a donation:
