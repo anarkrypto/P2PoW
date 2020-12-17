@@ -56,6 +56,11 @@ def to_url(address):
     else:
         return address
 
+def ip_version(ip_type):
+    if ip_type != "ipv4" and ip_type != "ipv6":
+        raise Exception('Invalid IP Type / Version!')
+    return ip_type
+
 #get multiplier from difficulty
 def to_multiplier(difficulty, base_difficulty) -> float:
   return float((1 << 64) - int(base_difficulty, 16)) / float((1 << 64) - int(difficulty, 16))

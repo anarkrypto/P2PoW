@@ -1,6 +1,6 @@
 import json, nanolib
 from modules.logger import app_log
-from modules.utils import to_raws, to_url
+from modules.utils import to_raws, to_url, ip_version
 
 def importConfig():
     #get worker api config
@@ -24,8 +24,8 @@ def importConfig():
             "service_port": data['port'],
         }
         worker["default_fee"] = to_raws(str(worker["default_fee"])) #convert mNano fee to raws
-    except Exception as e:
-        raise Exception ("worker_config.json error: " + str(e))
+    except Exception as err:
+        raise Exception ("worker_config.json error: " + str(err))
 
     #Get worker registration config
     try:
@@ -34,9 +34,10 @@ def importConfig():
         register_config = {
             "account": data_register['registration_account'].replace("xrb_", "nano_"),
             "register_code": int(data_register['register_code']),
-            "get_ip": to_url(data_register['get_ip'])
+            "get_ip": {"ipv4": to_url(data_register['get_ip']['ipv4']), "ipv6": to_url(data_register['get_ip']['ipv6'])},
+            "default_ip_version": ip_version(data_register['default_ip_version'])
         }
-    except Exception as e:
+    except Exception as err:
         raise Exception ("worker_config.json error: " + str(err))
 
     #Check config file

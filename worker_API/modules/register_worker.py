@@ -6,7 +6,10 @@ from modules.import_config import worker, register_config
 
 #Get external IPv4 or IPv6
 def get_my_ip():
-    myIP = requests.get(register_config["get_ip"])
+    if register_config["default_ip_version"] == "ipv4":
+        myIP = requests.get(register_config["get_ip"]["ipv4"])
+    if register_config["default_ip_version"] == "ipv6":
+        myIP = requests.get(register_config["get_ip"]["ipv6"])
     return myIP.text
 
 #encode IPv4 or IPv6 into Nano Account format
