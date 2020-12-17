@@ -50,7 +50,7 @@ def register_worker (account, previous, ip_account, multiplier):
                     app_log.error ("Transaction receiving fail. Details: " + json.dumps(r))
                     return False
             app_log.info ("Ok, registering worker now")
-            r = rpc.send(account, ip_account, rpc.frontier(account), register_config["account"], multiplier, '1.0')
+            r = rpc.send(account, ip_account, rpc.frontier(account), register_config["account"], register_config["register_code"])
     if 'hash' in r:
         app_log.info ("Successfully registred worker! Block: " + r["hash"])
     else:
