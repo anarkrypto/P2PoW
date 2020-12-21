@@ -49,3 +49,22 @@ It is not recommended to edit:
 - **servicePort**: Standard P2PoW port (7090)
 - **supportedVersions**: API versions that this client supports.
 
+<br>
+
+### Donations
+This project is developed in a totally independent way, you can encourage further development of this and other Nano projects with a donation:
+
+<p align="center">
+<img src="https://github.com/anarkrypto/P2PoW/blob/master/docs/donate-qr-code-gradient.png?raw=true" width="300px" />
+</p>
+
+
+<p align="center">
+ nano_18eoa1k16d4n1b5hb8hwxm5mmgp6zny7owhn8omc5bgxjahxsyznob9u536t
+ </p>
+
+### Discord Channel
+If you have questions about the project, suggestions or other contributions you can join our channel **#p2pow-discussion** on The Nano Center's Discord server:
+https://discord.gg/GhzdTkD
+
+
