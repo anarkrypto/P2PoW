@@ -628,7 +628,7 @@ const P2PoW = (function () {
 
   async function account_representative(account) {
     const data = {
-      "action": "account_reoresentative",
+      "action": "account_representative",
       "accounts": [account],
     }
     const json = await fetch(P2PoW.config.node, {

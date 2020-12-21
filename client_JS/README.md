@@ -5,7 +5,7 @@ This client offers the best way to communicate with workers running the P2PoW AP
 <br>Compatible with node.js and major browsers 
 
 ### Current Version
-2.0.0
+1.0.0
 
 ### nodeJS:
 
