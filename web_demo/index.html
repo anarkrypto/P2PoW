@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>P2PoW Demo</title>
+  <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
+  <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600' rel='stylesheet' type='text/css'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/gh-fork-ribbon.css" />
+  <a class="github-fork-ribbon" href="https://github.com/anarkrypto/P2PoW" data-ribbon="Fork me on GitHub"
+    title="Fork me on GitHub">Fork me on GitHub</a>
+
+</head>
+
+<body>
+  <div class='container'>
+    <header>
+      <h1>
+        <div class="logo_icon"></div>P2PoW - Demo
+      </h1>
+      <p>
+        Here you can see the active workers running the <a href="https://github.com/anarkrypto/p2pow">P2PoW protocol</a>
+        and test them.
+      </p>
+      <p class='small'>
+        You just need to deposit a micro fraction of Nano at the generated address and select the workers you want to
+        test.<br>
+        They will solve the puzzle (Proof of Work) of your receiving or sending transaction, getting a small fee as
+        reward. The process is fully P2P!
+      </p>
+    </header>
+    <main>
+      <div class="nano-bar" id="nano-bar">
+        <div class="config" onclick="popup('showSettings')"></div>
+        <ul>
+          <li>Wallet: <span class="create-wallet"><button class="button-default"
+                onclick="createWallet()">Create</button><button class="button-default"
+                onclick="popup('importWallet')">Import</button></span><button class="deposit button-default"
+              style="display: none;" onclick="popup('showAccount')">Deposit</button></li>
+          <li>
+            <ul class="nano-bar-balance">
+              <li>Balance: <span class="balance">0</span>
+              <li>Pending: <span class="balance_pending">0</span>
+            </ul>
+          </li>
+          <li>Sending <span class="sendingAmount"></span> Nano to: <span class="sendingTo">[Myself]</span>
+            <button class="button-default" onclick="popup('editSending')">Edit</button></li>
+        </ul>
+      </div>
+      <div id="showAccount" class="overlay">
+        <div class="popup">
+          <h3>Your Nano Account</h3>
+          <a class="close" onclick="popup('showAccount')">&times;</a>
+          <div class="content">
+            <h4 class="account">Account: <a href="nano:" class="URI">
+                <spam class="nano_account"></spam>
+                <div class="open"></div>
+              </a>
+              <div class="copy" onclick="copyToClipboard($('#showAccount .nano_account').text())"></div>
+            </h4>
+            <div class="qr_code" onclick="expandQR()"></div>
+            <div class="account_info">
+              <ul>
+                <li>Balance: <spam class="balance">0</spam> Nano</li>
+                <li>Pending: <spam class="balance_pending">0</spam> Nano</li>
+              </ul>
+            </div>
+            <div style="width:100%">
+              <!-- <hr></hr> -->
+              <h4>Pending Transactions: <button class="button-default button-receiveAll" onclick="popup('showAccount'); receiveAll()" style="display:none">Receive All</button></h4>
+              <ul class="pending_transactions"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="importWallet" class="overlay">
+        <div class="popup">
+          <h3>Import Nano Wallet</h3>
+          <a class="close" onclick="popup('importWallet')">&times;</a>
+          <div class="content" style="text-align: center">
+            <img src="img/import_key.png" width="70px">
+            <br>
+            <div class="importText">
+              <h4>Put Your Seed:</h4>
+              <input type="text" placeholder="Ex: E8F98A4BC4DD9C33FF1518BB7D..." style="width: 75%" class="inputText">
+              <div class="validate"></div>
+            </div>
+            <br>
+            <div class="importFile">
+              <h4>Or Upload Your JSON file:</h4>
+              <div class="fileContainer">
+                <input type="file" id="inputFile">
+                <label for="inputFile">Select a file</label>
+              </div>
+              <div class="validate"></div>
+              <div class="errorMessage"></div>
+            </div>
+            <br><br>
+            <button class="bottom disabled" disabled>Import</button>
+          </div>
+        </div>
+      </div>
+      <div id="showSettings" class="overlay">
+        <div class="popup">
+          <h3>Settings</h3>
+          <a class="close" onclick="popup('showSettings')">&times;</a>
+          <div class="content">
+            <ul>
+              <li><label>Account:</label>
+                <div class="option"><button class="button-default disabled" disabled
+                    onclick="showExportWallet()">Show/Export Seed</button></div>
+              </li>
+              <li><label>Nano Node:</label> <input class="node" type="text"></li>
+              <li><label>P2PoW Registration Account:</label> <input class="tracker_account" type="text"></li>
+              <li><label>Registration Code:</label> <input class="registration_code" type="text"></li>
+              <li><label>Service Port:</label> <input class="service_port" type="text"></li>
+              <li><label>Default Representative:</label> <input class="default_representative" type="text"></li>
+              <li><label>Supported Versions:</label> <input class="supported_versions disabled" disabled type="text">
+              </li>
+              <!--<li><button type="button" class="pure-button button-default" id="export_key">Export Account</button></li>-->
+            </ul>
+            <button class="bottom" onclick="saveConfig()">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="exportWallet" class="overlay2">
+        <div class="popup">
+          <h3 class="title">Show/Export Seed</h3>
+          <a class="close" onclick="popup('exportWallet')">&times;</a>
+          <div class="content" style="text-align: center">
+            <!--<img src="img/export_key.png" width="70px">-->
+            <img src="img/private_key.png" width="70px">
+            <br>
+            <p class="message">Don't share this data with anyone.</p>
+            <pre class="json"></pre>
+            <button class="bottom" style="width: 49%; border-bottom-right-radius: 0px;"
+              onclick="copySeed()">Copy</button>
+            <button class="bottom" style="width: 49%; margin-left: 51%; border-bottom-left-radius: 0px;"
+              onclick="exportWallet()">Export File</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="editSending" class="overlay">
+        <div class="popup">
+          <h3>Sending To</h3>
+          <a class="close" onclick="popup('editSending')">×</a>
+          <div class="content">
+            <ul>
+              <li><label>Destination:</label> <input class="default_destination" type="text"
+                  placeholder="Example: nano_1qx8fu5h3...q6e3a1"></li>
+              <Br>
+              <li><label>Amount:</label> <input class="default_amount" type="text" placeholder="Example: 0.00001"></li>
+              </li>
+            </ul>
+            <button class="bottom" onclick="saveSending()">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="showAlert" class="overlay">
+        <div class="popup">
+          <h3 class="title"></h3>
+          <a class="close" onclick="popup('showAlert')">&times;</a>
+          <div class="content" style="text-align: center">
+            <img class="alertImage" src="img/alert.png">
+            <p class="message"></p>
+            <button class="bottom">Ok</button>
+          </div>
+        </div>
+      </div>
+      <div class="testWorkers">
+        <div class="feeSlider">
+          <div class="water-slider">
+            <div class="range-slider">
+              <input id="range-slider-val" class="range-slider__range browser-default" type="range" value="0" min="1"
+                max="1000">
+              <div class="maxFee">Max Fee: <span class="range-slider__value">0</span> Nano</div>
+
+            </div>
+          </div>
+        </div>
+        <div class="testButton">
+          <button class="button-default competitionButton" onclick="testAllWorkers()">P2PoW Competition</button>
+        </div>
+      </div>
+      <div class='workers overlay_workers' id="workers">
+      </div>
+    </main>
+  </div>
+  <div class='colorOptions'>
+    <button class='dark'></button>
+    <button class='light'></button>
+  </div>
+
+
+  <!-- frameworks -->
+  <script type="text/javascript" src="/utils/jquery-3.4.1.min.js"></script>
+  <script type="text/javascript" src="/utils/qrcode.js"></script>
+
+
+  <!-- P2PoW Dependencies -->
+  <script type="text/javascript" src="/P2PoW_client_JS/nano_utils/bignumber.min.js"></script>
+  <script type="text/javascript" src="/P2PoW_client_JS/nano_utils/blake2b.js"></script>
+  <script type="text/javascript" src="/P2PoW_client_JS/nano_utils/nacl.js"></script>
+  <script type="text/javascript" src="/P2PoW_client_JS/P2PoW.js"></script>
+
+  <!-- Demo Dependencies-->
+  <script type="text/javascript" src="/nano-utils/nano-base32.js"></script>
+  <script type="text/javascript" src="/nano-utils/check.js"></script>
+  <script type="text/javascript" src="/nano-utils/wallet.js"></script>
+  <script type="text/javascript" src="/main.js"></script>
+</body>
+
+</html>
