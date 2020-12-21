@@ -1,0 +1,25 @@
+{
+  "name": "P2PoW_client_JS",
+  "version": "1.0.0",
+  "description": "P2PoW Client JS, compatible with node and browser",
+  "main": "P2PoW.js",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node examples/list_workers.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anarkrypto/p2pow.git"
+  },
+  "keywords": ["P2PoW","nanocurrency","Proof of Work","PoW","delegated","puzzle","client","api","node","nodejs","nano","xrb","raiblocks","api","json","anarkrypto"
+  ],
+  "author": "Anarkrypto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anarkrypto/p2pow/issues"
+  },
+  "homepage": "http://nanoprofile.online"
+}
