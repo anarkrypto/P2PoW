@@ -75,7 +75,7 @@ header {
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 430px;
+  height: 450px;
 }
 
 .header-container {
@@ -85,7 +85,7 @@ header {
 .header-container img {
   opacity: 0;
   transition: opacity 1s linear;
-  width: 250px;
+  width: 220px;
 }
 
 .header-container h1 {
