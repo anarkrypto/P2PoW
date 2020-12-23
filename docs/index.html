@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>P2P Delegated Proof of Work</title>
+
+  <meta name="description" content="Nano P2PoW Website, P2PoW is a P2P delegated Proof of Work protocol for Nano cryptourrency (NANO / XRB)">
+  <meta name="keywords" content="Nano, Raiblocks, Cryptocurrency, P2PoW, PoW, Proof of Work, P2P, crypto, instantaneous, decentralized, api, python, javascript, JS, design, article, official, website, demo, implementations, resources, unnoficial, donation, about, github, code, source, anarkrypto">
+  <meta name="author" content="Anarkrypto">
+
+  <link rel="icon" sizes="48x48" href="img/icons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/icons/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/icons/android-chrome-512x512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/icons/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/icons/favicon-16x16.png">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <!-- partial:index.partial.html -->
+  <div class="page-wrapper">
+
+    <header>
+      <div class="header-container">
+        <img src="img/contract.png" alt="logo" />
+        <h1>Nano P2PoW</h1>
+        <p>A P2P delegated Proof of Work protocol for Nano cryptocurrency.</p>
+        <p>Trustless, serveless, open-source</p>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      <nav>
+        <ul>
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#webdemo">Web Demo</a></li>
+          <li><a href="#resources">Code & Resources</a></li>
+          <li><a href="#unnoficial">Unnoficial Implementations</a></li>
+        </ul>
+      </nav>
+
+      <section class="section01" id="introduction">
+        <div class="section01-container">
+          <div class="section01-text">
+            <h3>The future of Nano ecosystem</h3>
+            <p>
+              In order to make Nano universally instantaneous by enabling the integration of low-processing and memory
+              devices without the need for central servers, we introduce a Peer-to-Peer Delegated Proof of Work
+              mechanism. Which rewards workers interested in providing computing resources to network users in exchange
+              for a small fee. Using Nano's DAG technology, it was possible to created a safe
+              mechanism where neither party can be dishonest. This eliminates any need for central coordinator.
+            </p>
+            <p>
+              P2PoW is the rebranding of Delegated PoW,
+              created in October 2019, by me, Anarkrypto, and <a
+                href="https://medium.com/snapy-io/nano-jam-one-concludes-7ea7b35418a9" target="_blank">winner of
+                NanoJam</a> - first hackaton focused on Nano cryptocurrency.
+            </p>
+            <a href="https://medium.com/@kaiquenunes/delegated-proof-of-work-d566870924d9?sk=106ba0ae720353bff199535e49840233"
+              target="_blank" class="button">Read More</a>
+          </div>
+          <div class="section01-image">
+            <span class="image-border">
+              <img src="img/nanominer.png" alt="section01" class="img_before" />
+              <span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section02" id="demo">
+        <h3>P2PoW Web Demo</h3>
+        <div class="section02-container">
+          <video id="demo-video" autoplay muted loop poster="/img/demo-preview2.png">
+            <source src="video/demo.webm" type="video/webm">
+              <source src="video/demo.ogg" type="video/ogg">
+              <source src="video/demo.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+            <script>
+             document.getElementById('demo-video').play();
+            </script>
+          </video>
+          <a href="https://demo.p2pow.online" target="_blank" class="button tryItNow">Try it Now!</a>
+        </div>
+
+      </section>
+
+      <section class="section03" id="resources">
+        <h3>Code and Resources</h3>
+        <div class="section03-container">
+          <div class="section03-code item">
+            <i class="fa fa-code" aria-hidden="true"></i>
+            <h4>P2P API</h4>
+            <div class="tag">Launched</div>
+            <p>With this API made in python you can sell Proof of Work to other Nano users. The entire process is
+              automated and you can choose your own fee</p>
+            <a href="https://github.com/anarkrypto/P2PoW/tree/master/worker_API" target="_blank"
+              class="button">Github</a>
+          </div>
+
+          <div class="section03-files item">
+            <i class="fa" aria-hidden="true" style="padding: 10%; margin-bottom: 30px;">
+              <img src="img/puzzle.gif" width="100px" />
+            </i>
+            <h4>P2PoW Web Demo</h4>
+            <div class="tag">Launched</div>
+            <p>
+              This application is completely client-side and runs directly in the browser.
+              <br>It offers a friendly interface allowing any user to test the P2PoW protocol.
+              <br>The communication process with workers is done by the P2PoW client JS</p>
+            <a href="https://github.com/anarkrypto/p2pow/tree/master/web_demo" class="button" target="_blank">Github</a>
+          </div>
+
+          <div class="section03-code item">
+            <i class="fa fa-code" aria-hidden="true" style="color: #4a90e2"></i>
+            <h4>P2PoW JS Client</h4>
+            <div class="tag">Launched</div>
+            <p>
+              This client offers the best way to communicate with workers running the P2PoW API. Compatible with node.js
+              and major browsers
+            </p>
+            <a class="button" href="https://github.com/anarkrypto/P2PoW/tree/master/client_JS"
+              target="_blank">GitHub</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section04" id="unnoficial">
+        <h3>Unnoficial Implementations</h3>
+
+        <div class="section04-container">
+
+          <div class="project-teaser">
+            <a href="https://github.com/devfabiosilva/myNanoEmbedded" class="thumbnail">
+              <img src="img/unnoficial/mynanoembedded.png" class="w-full">
+            </a>
+            <div class="content">
+              <h4 class="title">
+                <a href="https://github.com/devfabiosilva/myNanoEmbedded">
+                  myNanoEmbedded: lightweight C library
+                </a>
+                </h3>
+                <div class="description">
+                  <strong>myNanoEmbedded</strong> is a lightweight C library that integrates Nano Cryptocurrency to low
+                  complexity computational devices, with fast transactions and small fees by delegating the Proof of
+                  Work
+                  with P2PoW.
+                </div>
+            </div>
+          </div>
+
+          <div class="project-teaser">
+            <a href="https://github.com/devfabiosilva/myNanoPHP" class="thumbnail">
+              <img src="img/unnoficial/mynanophp.png" class="w-full">
+            </a>
+            <div class="content">
+              <h4 class="title">
+                <a href="https://github.com/devfabiosilva/myNanoPHP">
+                  myNanoPHP: library to integrate Nano to PHP
+                </a>
+                </h3>
+                <div class="description">
+                  <strong>myNanoPHP</strong> is a PHP Nano Library optimized in size and speed, binding the C library
+                  MyNanoEmbedded for PHP.
+                  <br>Support: BIP39, P2PoW, TRNG or PRNG entropy
+                  <br>ARM-A, ARM-M, Thumb, Xtensa-LX6 and IA64 compatible
+                  <br>Linux desktop, Raspberry PI, ESP32 and Olimex A20 tested platforms
+                </div>
+            </div>
+          </div>
+
+          <div class="project-teaser">
+            <a href="https://github.com/devfabiosilva/nano-electron" class="thumbnail">
+              <img src="img/unnoficial/nano-electron.png" class="w-full"></a>
+            <div class="content">
+              <h4 class="title"><a href="https://github.com/devfabiosilva/nano-electron">Nano-electron
+                </a>
+                </h3>
+                <div class="description">
+                  <strong>Nano-electron</strong> is a cross-platform for Nano cryptocurrency Wallet.
+                  <br><br>Focused on lightness, agility and portability, this portfolio uses the myNanoEmbedded C
+                  Library
+                  through a binding to provide greater performance.
+                </div>
+            </div>
+            <div class="footer">
+              <div class="flex-1 mr-4">
+                <div class="progress-bar">
+                  <div class="progress-bar-inner" style="width: 113%;"></div>
+                </div>
+              </div>
+              <div></div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <footer>
+      <div class="footer-container">
+        <div class="footer-left">
+          <div class="donations">
+            <h3>Donations:</h3>
+            <p>Encourage these projects with a donation:<br>
+              <strong>nano_18eoa1k16d4n1b5hb8hwxm5mmgp6zny7owhn8omc5bgxjahxsyznob9u536t</strong>
+            </p>
+          </div>
+          <div class="qr">
+            <img src="https://nanoprofile.online/img/donate_qr_white.png">
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="social">
+            <a href="https://discord.gg/GhzdTkD" target="_blank">
+              <svg class="i" style="width: 65px;" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 240">
+                <style>
+                  .st0 {
+                    fill: #c6c9cd;
+                  }
+                </style>
+                <path class="st0"
+                  d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zM140.9 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z">
+                </path>
+                <path class="st0"
+                  d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.5 28.1-10.5l1 1.2c-18 5.2-26.3 13.1-26.3 13.1s2.2-1.2 5.9-2.9c10.7-4.7 19.2-6 22.7-6.3.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.6 0 0-7.9-7.5-24.9-12.7l1.4-1.6s13.7-.3 28.1 10.5c0 0 14.4 26.1 14.4 58.3 0 0-8.5 14.5-30.6 15.2z">
+                </path>
+              </svg>
+            </a>
+            <a href="https://github.com/anarkrypto/P2PoW" target="_blank">
+              <svg role="img" aria-label="GitHub" focusable="false"
+                style="width: 50px; height: 50px; display: block; fill: #c6c9cd; margin-top: 4.4px;"
+                viewBox="0 0 24 24">
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z">
+                </path>
+              </svg>
+            </a>
+          </div>
+          <div class="author">
+            Made by Anarkrypto
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+  <script src="./script.js"></script>
+
+</body>
+
+</html>
