@@ -183,7 +183,7 @@ nav ul li a:hover {
 /* ----- SECTION01 ----- */
 
 .section01 {
-  padding: 8% 8%;
+  padding: 8% 6%;
   background: #fff;
   border-bottom: 1px solid #dae1e7;
 }
@@ -192,6 +192,8 @@ nav ul li a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 1920px;
+  margin: auto;
 }
 
 .section01-text {
@@ -297,6 +299,12 @@ nav ul li a:hover {
   color: white;
 }
 
+.section02-container {
+  width: 100%;
+  max-width: 1920px;
+  margin: auto;
+}
+
 .section02 .tryItNow {
   position: absolute;
   top: calc(50% - 60px);
@@ -327,7 +335,7 @@ nav ul li a:hover {
 /* ----- section03 ----- */
 
 .section03 {
-  padding: 8% 8%;
+  padding: 8% 4%;
   border-bottom: 1px solid #dae1e7;
   background: #fff;
 }
@@ -362,10 +370,12 @@ nav ul li a:hover {
   justify-content: space-around;
   text-align: center;
   color: #767676;
+  max-width: 1920px;
+  margin: auto;
 }
 
 .item {
-  width: 340px;
+  width: 315px;
   max-width: 100%;
   margin: 0 5px 20px;
   padding: 1rem 0;
@@ -479,12 +489,14 @@ nav ul li a:hover {
   justify-content: space-around;
   text-align: center;
   color: #767676;
+  max-width: 1920px;
+  margin: auto;
 }
 
 .project-teaser {
-  width: 340px;
+  width: 315px;
   max-width: 100%;
-  margin-bottom: 20px;
+  margin: 10px 5px 20px;
   border: 1px solid #dae1e7;
 }
 
@@ -526,6 +538,8 @@ footer h3 {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+  max-width: 1920px;
+  margin: auto;
 }
 
 footer a {
@@ -590,7 +604,32 @@ footer button {
   }
 }
 
-@media screen and (max-width: 1020px) {}
+@media screen and (max-width: 1279px) {
+  .section03, .section04 {
+    padding: 6% 10px; 
+  }
+  footer {
+    padding: 5% 20px;
+  } 
+}
+
+@media screen and (min-width: 1280px) {
+  .section03 .item {
+    width: 350px;
+  }
+  .project-teaser {
+    width: 350px;
+  }
+}
+
+@media screen and (min-width: 1440px) {
+  .section03 .item {
+    width: 380px;
+  }
+  .project-teaser {
+    width: 380px;
+  }
+}
 
 @media screen and (max-width: 960px) {
   .section03 h3 {
@@ -636,7 +675,7 @@ footer button {
     margin: auto;
   }
   .item {
-    width: 420px;
+    width: 400px;
   }
   .item:last-child {
     margin-bottom: 0%;
@@ -650,6 +689,9 @@ footer button {
   .item .fa {
     padding: 10%;
     font-size: 50px;
+  }
+  .project-teaser {
+    width: 380px;
   }
   footer {
     text-align: center;
