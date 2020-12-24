@@ -1,5 +1,8 @@
 ## P2PoW Client JS
-This client offers the best way to communicate with workers running the P2PoW API.
+
+<p align='center'><img src="https://github.com/anarkrypto/P2PoW/blob/master/docs/github-images/client.png" width="250px"></p>
+
+This library offers the best way to communicate with workers running the P2PoW API.
 <br>All signatures are made on the client side.
 <br>Block information and account balance are obtained through RPC commands for a Nano node.
 <br>Compatible with node.js and major browsers 
