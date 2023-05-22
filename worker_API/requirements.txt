@@ -1,5 +1,5 @@
 nanolib==0.4.1
-requests==2.23.0
+requests==2.31.0
 Flask==1.1.1
 Flask-Cors==3.0.9
 waitress==1.4.3
